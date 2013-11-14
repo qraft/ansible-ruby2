@@ -1,0 +1,12 @@
+production:
+  adapter: postgresql
+  user: {{pg_user}}
+  password: {{pg_password}}
+  database: {{database_name}}
+  pool: 15
+
+seed:
+  adapter: sqlite3
+  database: db/seed.sqlite3
+  pool: 5
+  timeout: 5000

@@ -1,0 +1,79 @@
+---
+- hosts: webserver
+  sudo: false
+  user: deployer
+  gather_facts: false
+
+  vars:
+    home: /home/$user
+    ruby_version: "2.0.0-p195"
+    ruby_bin_path: /home/$user/.rbenv/shims
+    rbenv_exec: /home/$user/.rbenv/bin/rbenv
+
+  vars_files:
+    - ../variables/global.yml
+
+  tasks:
+    - name: 'install brightbox deb repositories'
+      apt_repository: repo=ppa:brightbox/ruby-ng state=present
+      sudo: true
+
+    - name: pyhton software properties
+      apt: pkg=python-software-properties state=installed update_cache=yes
+      sudo: true
+
+    - name: 'Install required apt packages'
+      apt: pkg=$item state=installed update_cache=yes
+      sudo: true
+      with_items:
+        - ruby2.0
+        - ruby2.0-dev
+        - ruby-switch
+
+    - name: 'Install required apt packages'
+      apt: pkg=$item state=installed update_cache=yes
+      sudo: true
+      with_items:
+        - libxml2-dev
+        - libxslt1-dev
+
+    - name: 'Install required apt packages'
+      apt: pkg=$item state=installed update_cache=yes
+      sudo: true
+      with_items:
+        - postgresql-9.1
+        - postgresql-client-9.1
+        - postgresql-server-dev-9.1
+        - nodejs
+
+    - name: imagemagick
+      apt: pkg=$item state=installed update_cache=yes
+      sudo: true
+      ignore_errors: True
+      with_items:
+        - imagemagick
+        - libmagickcore-dev
+        - libmagickwand-dev
+
+    - name: sqlite
+      apt: pkg=$item state=installed update_cache=yes
+      sudo: true
+      ignore_errors: True
+      with_items:
+        - sqlite3
+        - libsqlite3-dev
+
+    - name: create db user
+      sudo: true
+      action: shell sudo -u postgres psql -c "CREATE ROLE $pg_user WITH SUPERUSER CREATEDB LOGIN password '$pg_password';"
+      ignore_errors: True #skip if existing
+
+    - gem: name=rack state=present version=1.4.5
+      sudo: true
+
+    - name: install basic gems
+      gem: name=$item state=present
+      with_items:
+      - bundler
+      - passenger
+      sudo: true
